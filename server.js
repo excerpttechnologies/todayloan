@@ -49,19 +49,19 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── Frontend build serving ────────────────────────────────────────
-// Vite uses dist, React CRA uses build
-const frontendDistPath = path.join(__dirname, '../frontend/dist');
-const frontendBuildPath = path.join(__dirname, '../frontend/build');
+const frontendPath = path.join(__dirname, 'dist');
 
-const frontendPath = fs.existsSync(frontendDistPath)
-  ? frontendDistPath
-  : frontendBuildPath;
+if (fs.existsSync(path.join(frontendPath, 'index.html'))) {
+  app.use(express.static(frontendPath));
 
-app.use(express.static(frontendPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
-});
+  console.log('✅ Frontend served from:', frontendPath);
+} else {
+  console.log('⚠️ Frontend dist not found at:', frontendPath);
+}
 
 // ── Global error handler ──────────────────────────────────────────
 app.use((err, req, res, next) => {
