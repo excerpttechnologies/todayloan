@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema({
   lastLogin:        { type: Date },
   // Banker
   bankId:           { type: mongoose.Schema.Types.ObjectId, ref: 'Bank' },
+  assignedLoanTypes: [{ type: String }],
+  parentBanker:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // ← ADD
   // Connector
   connectorCode:    { type: String, unique: true, sparse: true },
   connectorPlan:    { type: String, enum: ['basic', 'pro', 'enterprise'], default: 'basic' },

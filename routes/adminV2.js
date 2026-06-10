@@ -104,9 +104,12 @@ router.get('/bankers', async (req, res) => {
 
 router.post('/bankers', async (req, res) => {
   try {
-    const { name, email, mobile, password, bankId } = req.body;
+    const { name, email, mobile, password, bankId, assignedLoanTypes } = req.body;  // ← add assignedLoanTypes
     if (!name || !email || !password) return res.status(400).json({ success: false, message: 'Missing fields' });
-    const user = await User.create({ name, email, mobile, password, role: 'banker', isVerified: true, mustChangePassword: true });
+    const user = await User.create({ 
+      name, email, mobile, password, role: 'banker', isVerified: true, mustChangePassword: true,
+      assignedLoanTypes: assignedLoanTypes || [],  // ← ADD
+    });
     if (bankId) await BankUser.create({ bankerId: user._id, bankId });
     res.status(201).json({ success: true, user });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
@@ -114,8 +117,12 @@ router.post('/bankers', async (req, res) => {
 
 router.put('/bankers/:id', async (req, res) => {
   try {
-    const { name, email, mobile, isActive, bankId } = req.body;
-    const user = await User.findByIdAndUpdate(req.params.id, { name, email, mobile, isActive }, { new: true });
+    const { name, email, mobile, isActive, bankId, assignedLoanTypes } = req.body;  // ← add assignedLoanTypes
+    const user = await User.findByIdAndUpdate(
+      req.params.id, 
+      { name, email, mobile, isActive, assignedLoanTypes: assignedLoanTypes || [] },  // ← ADD
+      { new: true }
+    );
     if (bankId) await BankUser.findOneAndUpdate({ bankerId: req.params.id }, { bankId }, { upsert: true });
     res.json({ success: true, user });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
