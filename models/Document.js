@@ -1,3 +1,0 @@
-const mongoose = require('mongoose');
-const documentSchema = new mongoose.Schema({ application: { type: mongoose.Schema.Types.ObjectId, ref: 'LoanApplication' }, uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, documentType: { type: String, enum: ['aadhaar','pan','salary_slip','bank_statement','itr','gst','property_doc','vehicle_doc','photo','other'] }, fileName: String, originalName: String, filePath: String, fileUrl: String, fileSize: Number, mimeType: String, isVerified: { type: Boolean, default: false }, verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, verifiedAt: Date, remarks: String, isActive: { type: Boolean, default: true } }, { timestamps: true });
-module.exports = mongoose.model('Document', documentSchema);
