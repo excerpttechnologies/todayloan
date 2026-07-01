@@ -12,6 +12,23 @@ const companySchema = new mongoose.Schema({
   mobile: { type: String },
   email: { type: String },
   logo: { type: String },
+  //Raksha
+  // NEW: Multiple branches
+  branches: [{
+    branchName: { type: String },
+    branchAddress: { type: String },
+    branchCity: { type: String },
+    branchPincode: { type: String },
+    branchContact: { type: String },
+  }],
+
+  // NEW: Company documents (up to 10)
+  documents: [{
+    name: { type: String },
+    url: { type: String },
+    uploadedAt: { type: Date, default: Date.now }
+  }],
+
   bankingRelations: [{
     bankId: { type: mongoose.Schema.Types.ObjectId, ref: 'Bank' },
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },

@@ -18,14 +18,14 @@ const Connector = require('./models/Connector');
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server, {
-  cors: { origin: process.env.CLIENT_URL || 'http://localhost:3000', methods: ['GET','POST'] }
+  cors: { origin: process.env.CLIENT_URL || 'https://bankzone.etpl.ai', methods: ['GET','POST'] }
 });
 
 setIO(io);
 
 // Middleware
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }));
+app.use(cors({ origin: process.env.CLIENT_URL || 'https://bankzone.etpl.ai', credentials: true }));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));

@@ -45,6 +45,17 @@ const commissionSchema = new mongoose.Schema({
   paidAt: Date
 }, { timestamps: true });
 
+// const auditLogSchema = new mongoose.Schema({
+//   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+//   role: String,
+//   action: String,
+//   targetId: mongoose.Schema.Types.ObjectId,
+//   targetType: String,
+//   description: String,
+//   ipAddress: String,
+// }, { timestamps: true });
+
+
 const auditLogSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   role: String,
@@ -53,6 +64,7 @@ const auditLogSchema = new mongoose.Schema({
   targetType: String,
   description: String,
   ipAddress: String,
+  metadata: { type: mongoose.Schema.Types.Mixed }
 }, { timestamps: true });
 
 module.exports = {
