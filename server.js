@@ -14,7 +14,7 @@ const LoanApplication = require('./models/LoanApplication');
 const { sendNotification } = require('./utils/notifications');
 const Connector = require('./models/Connector');
 
-
+//3000
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server, {
@@ -24,7 +24,19 @@ const io = socketio(server, {
 setIO(io);
 
 // Middleware
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "frame-ancestors": ["'self'", "https://bankzone.etpl.ai"],
+    },
+  },
+}));
+app.use('/uploads', (req, res, next) => {
+  res.removeHeader('X-Frame-Options');
+  next();
+});
 app.use(cors({ origin: process.env.CLIENT_URL || 'https://bankzone.etpl.ai', credentials: true }));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '50mb' }));
@@ -36,9 +48,15 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, message: 'Too
 app.use('/api/v1/auth', authLimiter);
 app.use('/api/v1', limiter);
 
+
 // Static files
+app.use('/uploads', (req, res, next) => {
+  res.removeHeader('X-Frame-Options');
+  next();
+});
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+ // this is your existing line 44
 // Routes
 app.use('/api/v1', require('./routes/index'));
 

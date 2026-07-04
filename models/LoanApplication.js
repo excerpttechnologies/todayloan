@@ -706,9 +706,11 @@ const maskHistoryEntrySchema = new Schema(
   { _id: true }
 );
 
+
 const applicantDetailsSchema = new Schema(
   {
     name: { type: String, default: "" },
+    nameMasked: { type: String, default: "" }, 
 
     mobile: { type: String, default: "" }, // real value
     mobileMasked: { type: String, default: "" }, // derived, recomputed on save

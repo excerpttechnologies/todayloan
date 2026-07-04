@@ -124,7 +124,7 @@ async function seed() {
       name: 'Suresh Patel',
       mobileRaw: '9812345001',
       mobileMasked: '98XXXXX001',
-      email: 's***@gmail.com',
+      email: 'suresh.patel@gmail.com',
       emailMasked: 's***@gmail.com',
       dob: new Date('1985-06-15'),
       dobMasked: '**/**/1985',
