@@ -14,13 +14,13 @@ const LoanApplication = require('./models/LoanApplication');
 const { sendNotification } = require('./utils/notifications');
 const Connector = require('./models/Connector');
 
-//3000
+
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server, {
   cors: { origin: process.env.CLIENT_URL || 'https://bankzone.etpl.ai', methods: ['GET','POST'] }
 });
-
+//3000
 setIO(io);
 
 // Middleware
@@ -29,7 +29,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      "frame-ancestors": ["'self'", "https://bankzone.etpl.ai"],
+      "frame-ancestors": ["'self'", "https://bankzone.etpl.ai"],//3000
     },
   },
 }));
@@ -37,7 +37,7 @@ app.use('/uploads', (req, res, next) => {
   res.removeHeader('X-Frame-Options');
   next();
 });
-app.use(cors({ origin: process.env.CLIENT_URL || 'https://bankzone.etpl.ai', credentials: true }));
+app.use(cors({ origin: process.env.CLIENT_URL || 'https://bankzone.etpl.ai', credentials: true })); //3000
 app.use(morgan('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));

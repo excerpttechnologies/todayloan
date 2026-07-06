@@ -42,7 +42,12 @@ exports.createApplication = async (req, res) => {
       return res.status(400).json({ message: 'You must be approved by a DSA company before submitting applications' });
     }
 
-    const { applicantDetails, bankIds, ...rest } = req.body;
+
+    //shree7
+    const applicantDetails = req.body.applicantDetails || {};
+const { bankIds, ...rest } = req.body;
+
+
     console.log('📌 Applicant Details:', JSON.stringify(applicantDetails, null, 2));
    
      console.log('📌 Documents received:', JSON.stringify(rest.documents, null, 2));

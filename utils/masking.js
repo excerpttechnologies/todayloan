@@ -264,6 +264,126 @@
 
 
 
+// // utils/masking.js
+
+// const maskMobile = (mobile) => {
+//   if (!mobile) return '';
+//   const m = mobile.replace(/\D/g, '');
+//   if (m.length < 5) return m;
+//   return m.substring(0, 2) + 'X'.repeat(m.length - 5) + m.substring(m.length - 3);
+// };
+
+// const maskEmail = (email) => {
+//   if (!email) return '';
+//   const [local, domain] = email.split('@');
+//   if (!domain) return email;
+//   return local.charAt(0) + '***@' + domain;
+// };
+
+// const maskAadhaar = (aadhaar) => {
+//   if (!aadhaar) return '';
+//   const a = aadhaar.replace(/\D/g, '');
+//   if (a.length < 4) return a;
+//   // Show only last 4 digits
+//   // return 'XXXX-XXXX-' + a.substring(a.length - 4);
+//    return a.substring(0, 2) + 'X'.repeat(a.length - 5) + a.substring(a.length - 3);
+// };
+
+// const maskPAN = (pan) => {
+//   if (!pan) return '';
+//   const p = pan.toUpperCase();
+//   if (p.length < 6) return p;
+//   // Show first 2 and last 2 characters
+//   return p.substring(0, 2) + 'XXX' + p.substring(5);
+// };
+
+// const maskDOB = (dob) => {
+//   if (!dob) return '';
+//   const d = new Date(dob);
+//   return `**/**/${d.getFullYear()}`;
+// };
+
+// const maskName = (name) => {
+//   if (!name) return '';
+//   const parts = name.trim().split(' ');
+//   if (parts.length > 1) {
+//     return parts[0].charAt(0) + '*** ' + parts[parts.length - 1];
+//   }
+//   return name.charAt(0) + '***';
+// };
+
+// const maskSalary = (salary) => {
+//   if (!salary) return '';
+//   const num = Number(salary);
+//   if (isNaN(num) || num === 0) return '';
+//   const lower = Math.floor(num / 10000) * 10000;
+//   const upper = lower + 10000;
+//   return `₹${lower.toLocaleString('en-IN')}–₹${upper.toLocaleString('en-IN')}`;
+// };
+
+
+
+// const applyMasking = (application) => {
+//   const app = application.toObject ? application.toObject() : { ...application };
+  
+//   if (app.applicantDetails) {
+//     // ✅ Store original values in raw fields
+//     app.applicantDetails.mobileRaw = app.applicantDetails.mobile || '';
+//     app.applicantDetails.emailRaw = app.applicantDetails.email || '';
+//     app.applicantDetails.aadhaarRaw = app.applicantDetails.aadhaar || '';
+//     app.applicantDetails.panRaw = app.applicantDetails.pan || '';
+//     app.applicantDetails.dobRaw = app.applicantDetails.dob || '';
+//     app.applicantDetails.nameRaw = app.applicantDetails.name || '';
+    
+//     // ✅ Apply masking to all fields
+//     app.applicantDetails.mobile = maskMobile(app.applicantDetails.mobile);
+//     app.applicantDetails.email = maskEmail(app.applicantDetails.email);
+//     app.applicantDetails.aadhaar = maskAadhaar(app.applicantDetails.aadhaar);  // 🔥 FIXED
+//     app.applicantDetails.pan = maskPAN(app.applicantDetails.pan);
+//     app.applicantDetails.dob = maskDOB(app.applicantDetails.dob);
+    
+  
+    
+//     // Mask name
+//     if (app.applicantDetails.name) {
+//       const nameParts = app.applicantDetails.name.split(' ');
+//       if (nameParts.length > 1) {
+//         app.applicantDetails.name = nameParts[0].charAt(0) + '*** ' + nameParts.pop();
+//       } else {
+//         app.applicantDetails.name = app.applicantDetails.name.charAt(0) + '***';
+//       }
+//     }
+//   }
+  
+//   if (app.incomeDetails && app.incomeDetails.netSalary) {
+//     app.incomeDetails.netSalary = maskSalary(app.incomeDetails.netSalary);
+//   }
+  
+//   return app;
+// };
+
+// module.exports = { 
+//   maskMobile, 
+//   maskEmail, 
+//   maskAadhaar, 
+//   maskPAN, 
+//   maskDOB, 
+//   maskSalary, 
+//   maskName, 
+//   applyMasking 
+// };
+
+
+
+
+
+
+
+
+
+
+
+
 // utils/masking.js
 
 const maskMobile = (mobile) => {
@@ -285,7 +405,8 @@ const maskAadhaar = (aadhaar) => {
   const a = aadhaar.replace(/\D/g, '');
   if (a.length < 4) return a;
   // Show only last 4 digits
-  return 'XXXX-XXXX-' + a.substring(a.length - 4);
+  // return 'XXXX-XXXX-' + a.substring(a.length - 4);
+   return a.substring(0, 2) + 'X'.repeat(a.length - 5) + a.substring(a.length - 3);
 };
 
 const maskPAN = (pan) => {
@@ -302,6 +423,15 @@ const maskDOB = (dob) => {
   return `**/**/${d.getFullYear()}`;
 };
 
+const maskName = (name) => {
+  if (!name) return '';
+  const parts = name.trim().split(' ');
+  if (parts.length > 1) {
+    return parts[0].charAt(0) + '*** ' + parts[parts.length - 1];
+  }
+  return name.charAt(0) + '***';
+};
+
 const maskSalary = (salary) => {
   if (!salary) return '';
   const num = Number(salary);
@@ -311,49 +441,46 @@ const maskSalary = (salary) => {
   return `₹${lower.toLocaleString('en-IN')}–₹${upper.toLocaleString('en-IN')}`;
 };
 
+
+
 const applyMasking = (application) => {
   const app = application.toObject ? application.toObject() : { ...application };
-  
+
   if (app.applicantDetails) {
-    // ✅ Store original values in raw fields
+    // Store original values in raw fields (kept as-is for reference/audit)
     app.applicantDetails.mobileRaw = app.applicantDetails.mobile || '';
     app.applicantDetails.emailRaw = app.applicantDetails.email || '';
     app.applicantDetails.aadhaarRaw = app.applicantDetails.aadhaar || '';
     app.applicantDetails.panRaw = app.applicantDetails.pan || '';
     app.applicantDetails.dobRaw = app.applicantDetails.dob || '';
     app.applicantDetails.nameRaw = app.applicantDetails.name || '';
-    
-    // ✅ Apply masking to all fields
+
+    // ✅ ONLY mask PAN, Aadhaar, and Mobile.
+    // Name, email, and DOB are shown as-is (not masked) before bank selection.
     app.applicantDetails.mobile = maskMobile(app.applicantDetails.mobile);
-    app.applicantDetails.email = maskEmail(app.applicantDetails.email);
-    app.applicantDetails.aadhaar = maskAadhaar(app.applicantDetails.aadhaar);  // 🔥 FIXED
+    app.applicantDetails.aadhaar = maskAadhaar(app.applicantDetails.aadhaar);
     app.applicantDetails.pan = maskPAN(app.applicantDetails.pan);
-    app.applicantDetails.dob = maskDOB(app.applicantDetails.dob);
-    
-    // Mask name
-    if (app.applicantDetails.name) {
-      const nameParts = app.applicantDetails.name.split(' ');
-      if (nameParts.length > 1) {
-        app.applicantDetails.name = nameParts[0].charAt(0) + '*** ' + nameParts.pop();
-      } else {
-        app.applicantDetails.name = app.applicantDetails.name.charAt(0) + '***';
-      }
-    }
+
+    // ❌ Name masking removed — applicant name is always shown unmasked.
+    // ❌ Email masking removed — not required per masking scope.
+    // ❌ DOB masking removed — not required per masking scope.
   }
-  
+
   if (app.incomeDetails && app.incomeDetails.netSalary) {
     app.incomeDetails.netSalary = maskSalary(app.incomeDetails.netSalary);
   }
-  
+
   return app;
 };
 
-module.exports = { 
-  maskMobile, 
-  maskEmail, 
-  maskAadhaar, 
-  maskPAN, 
-  maskDOB, 
-  maskSalary, 
-  applyMasking 
+module.exports = {
+  applyMasking,
+  maskMobile,
+  maskEmail,
+  maskAadhaar,
+  maskPAN,
+  maskDOB,
+  maskSalary,
+  maskName,
+  
 };
