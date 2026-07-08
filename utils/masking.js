@@ -452,7 +452,7 @@ const applyMasking = (application) => {
     app.applicantDetails.emailRaw = app.applicantDetails.email || '';
     app.applicantDetails.aadhaarRaw = app.applicantDetails.aadhaar || '';
     app.applicantDetails.panRaw = app.applicantDetails.pan || '';
-    app.applicantDetails.dobRaw = app.applicantDetails.dob || '';
+    
     app.applicantDetails.nameRaw = app.applicantDetails.name || '';
 
     // ✅ ONLY mask PAN, Aadhaar, and Mobile.

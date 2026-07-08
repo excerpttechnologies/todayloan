@@ -664,18 +664,34 @@ const bankAssignmentSchema = new Schema(
     bankName: { type: String, required: true },
 
     // Lifecycle of this specific bank's handling of the lead
-    status: {
-      type: String,
-      enum: ["submitted", "in_review", "approved", "rejected", "disbursed", "withdrawn"],
-      default: "submitted",
-    },
+    // status: {
+    //   type: String,
+    //   enum: ["submitted", "in_review", "approved", "rejected", "disbursed", "withdrawn"],
+    //   default: "submitted",
+    // },
 
     // Bank's response to the masked lead: has it expressed interest?
-    interestStatus: {
-      type: String,
-      enum: ["pending", "interested", "not_interested"],
-      default: "pending",
-    },
+    // interestStatus: {
+    //   type: String,
+    //   enum: ["pending", "interested", "not_interested"],
+    //   default: "pending",
+    // },
+
+status: {
+  type: String,
+  enum: ["submitted", "in_review", "accepted", "approved", "rejected", "disbursed", "withdrawn", "query_raised", "query_resolved", "sanctioned", "agreement", "disbursement", "closed"],
+  default: "submitted",
+},
+
+interestStatus: {
+  type: String,
+  enum: ["pending", "interested", "not_interested", "need_more_info"],
+  default: "pending",
+},
+
+
+
+
     interestNote: { type: String, default: "" },
     interestUpdatedAt: { type: Date },
 
