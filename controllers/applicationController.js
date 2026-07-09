@@ -1155,16 +1155,19 @@ exports.getApplications = async (req, res) => {
         console.log(`   - unmaskApproved: ${isUnmaskApproved}`);
         console.log(`   - Returning: ${isSelectedBank && isUnmaskApproved ? '✅ UNMASKED' : '❌ MASKED'}`);
         
-        const result = (isSelectedBank && isUnmaskApproved) ? app.toObject() : applyMasking(app);
+       const result = (isSelectedBank && isUnmaskApproved) ? app.toObject() : applyMasking(app);
+result.bankAssignments = assignment
+    ? [assignment.toObject ? assignment.toObject() : assignment]
+    : [];
 
-        // ✅ FIX: this bank should only ever see its OWN assignment, not other banks'
-        result.bankAssignments = (result.bankAssignments || []).filter(
-          ba => ba.bankId?.toString() === bankId?.toString()
-        );
+// 🔒 NEW: hide documents (PAN/Aadhaar images, bank statements, payslips...)
+// until THIS bank is the selected + unmask-approved bank
+if (!(isSelectedBank && isUnmaskApproved)) {
+  result.documents = {};
+}
 
-        return result;
+return result;
       });
-
 
       console.log('🔍 ===== DEBUG END =====');
     } else if (role === 'company') {
@@ -1256,13 +1259,17 @@ exports.getApplicationById = async (req, res) => {
       // 2. This bank has unmaskApproved = true
       const result = shouldUnmask ? app.toObject() : applyMasking(app);
 
-      // ✅ FIX: this bank should only ever see its OWN assignment, not other banks'
-      result.bankAssignments = (result.bankAssignments || []).filter(
-        ba => ba.bankId && ba.bankId.toString() === bankId.toString()
-      );
+result.bankAssignments = assignment
+  ? [assignment.toObject ? assignment.toObject() : assignment]
+  : [];
 
-      return res.json(result);
-    }
+// 🔒 NEW: same document gate here
+if (!shouldUnmask) {
+  result.documents = {};
+}
+
+return res.json(result);
+ }
 
     // Corporate DSA: full visibility
     if (role === 'company') {
