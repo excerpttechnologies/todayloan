@@ -5,9 +5,22 @@ const fs = require('fs');
 
 const UPLOAD_BASE = path.join(__dirname, '../uploads');
 
-const FOLDER_MAP = {
-  'pan-cards': 'pan-cards',
-  'aadhaar-cards': 'aadhaar-cards',
+// const FOLDER_MAP = {
+//   'pan-cards': 'pan-cards',
+//   'aadhaar-cards': 'aadhaar-cards',
+//   'payslips': 'payslips',
+//   'bank-statements': 'bank-statements',
+//   'photos': 'photos',
+//   'form16': 'form16',piyexwz
+//   'sale-deeds': 'sale-deeds',
+//   'property-docs': 'property-docs',
+//   'sanction-letters': 'sanction-letters',
+//   'business-docs': 'business-docs',
+//   'others': 'others'
+// };
+const documentTypes = {
+  'aadhar': 'aadhar',    
+  'pan': 'pan', 
   'payslips': 'payslips',
   'bank-statements': 'bank-statements',
   'photos': 'photos',
@@ -15,13 +28,13 @@ const FOLDER_MAP = {
   'sale-deeds': 'sale-deeds',
   'property-docs': 'property-docs',
   'sanction-letters': 'sanction-letters',
+  'business-docs': 'business-docs',
   'others': 'others'
 };
-
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const folder = req.query.folder || req.body.folder || 'others';
-    const dest = path.join(UPLOAD_BASE, FOLDER_MAP[folder] || 'others');
+    const dest = path.join(UPLOAD_BASE, documentTypes[folder] || 'others');
     if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
     cb(null, dest);
   },

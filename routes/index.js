@@ -177,7 +177,12 @@ router.post('/applications/:id/banks/:bankId/select', auth, requireRole('connect
 router.post('/applications/:id/banks/:bankId/interest', auth, requireRole('bank', 'sm'), appCtrl.updateInterestStatus);
 
 // Selected banker only: download docs (auto-emailed to bank's registered email)
+// router.post('/applications/:id/banks/:bankId/download-docs', auth, requireRole('bank', 'sm'), appCtrl.downloadAndEmailDocs);
+
+// 10/7
+
 router.post('/applications/:id/banks/:bankId/download-docs', auth, requireRole('bank', 'sm'), appCtrl.downloadAndEmailDocs);
+router.post('/applications/:id/banks/:bankId/email-docs', auth, requireRole('bank', 'sm'), appCtrl.emailDocumentsToBank);
 
 // FILE UPLOAD
 router.post('/documents/upload', auth, upload.single('file'), appCtrl.uploadDocument);

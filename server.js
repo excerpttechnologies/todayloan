@@ -211,10 +211,13 @@ app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() 
 app.use(express.static(path.join(__dirname, "dist")));
 
 // React Router Support
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
-});
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "dist", "index.html"));
+// });
 
+
+// ✅ Correct order
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // Socket.io

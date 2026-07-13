@@ -642,16 +642,61 @@ exports.respondToRequest = async (req, res) => {
 };
 
 // NOTIFICATIONS
+// exports.getNotifications = async (req, res) => {
+//   try {
+//     const { page = 1, limit = 20, type, isRead } = req.query;
+//     const query = { userId: req.user._id };
+//     if (type) query.type = type;
+//     if (isRead !== undefined) query.isRead = isRead === 'true';
+//     const notifications = await Notification.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(Number(limit));
+//     const total = await Notification.countDocuments(query);
+//     const unreadCount = await Notification.countDocuments({ userId: req.user._id, isRead: false });
+//     res.json({ notifications, total, unreadCount, pages: Math.ceil(total / Number(limit)) });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+
+// 10/7
+
+
 exports.getNotifications = async (req, res) => {
   try {
-    const { page = 1, limit = 20, type, isRead } = req.query;
-    const query = { userId: req.user._id };
-    if (type) query.type = type;
-    if (isRead !== undefined) query.isRead = isRead === 'true';
-    const notifications = await Notification.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(Number(limit));
+    const userId = req.user._id;
+    const { page = 1, limit = 10, search = '', status = 'all' } = req.query;
+
+    let query = { userId };
+    if (status === 'unread') query.isRead = false;
+    if (status === 'read') query.isRead = true;
+
+    if (search.trim()) {
+      const regex = new RegExp(search.trim(), 'i');
+
+      // match either the Application ID (BKL000067) OR the applicant's name (Chiraag)
+      const matchingApps = await LoanApplication.find({
+        $or: [
+          { applicationId: regex },
+          { 'applicantDetails.name': regex }
+        ]
+      }).select('_id');
+
+      const matchingAppIds = matchingApps.map(a => a._id);
+
+      query.$or = [
+        { title: regex },
+        { message: regex },
+        { relatedId: { $in: matchingAppIds } }
+      ];
+    }
+
     const total = await Notification.countDocuments(query);
-    const unreadCount = await Notification.countDocuments({ userId: req.user._id, isRead: false });
-    res.json({ notifications, total, unreadCount, pages: Math.ceil(total / Number(limit)) });
+    const notifications = await Notification.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * Number(limit))
+      .limit(Number(limit));
+
+    res.json({ notifications, total, pages: Math.max(1, Math.ceil(total / limit)) });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
