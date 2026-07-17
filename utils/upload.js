@@ -30,6 +30,7 @@ const documentTypes = {
   'sanction-letters': 'sanction-letters',
   'business-docs': 'business-docs',
   'family-income-proofs': 'family-income-proofs',
+  'aadhaar-cards': 'aadhaar-cards',
   'others': 'others'
 };
 const storage = multer.diskStorage({
