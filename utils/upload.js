@@ -29,6 +29,7 @@ const documentTypes = {
   'property-docs': 'property-docs',
   'sanction-letters': 'sanction-letters',
   'business-docs': 'business-docs',
+  'family-income-proofs': 'family-income-proofs',
   'others': 'others'
 };
 const storage = multer.diskStorage({
