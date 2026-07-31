@@ -1142,6 +1142,9 @@ const { Commission } = require('../models/index');
 const PDFDocument = require('pdfkit');
 const nodemailer = require('nodemailer');
 const { AuditLog } = require('../models/index');
+// NEW (Bank Policy module): separate collection + pure comparison engine
+const BankPolicy = require('../models/BankPolicy');
+const { evaluateEligibility } = require('../utils/eligibilityEngine');
 
 const getMailer = () => nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -1361,6 +1364,31 @@ exports.createApplication = async (req, res) => {
     console.log('✅ Application created:', application._id);
     console.log('✅ Application ID:', application.applicationId);
 
+    // ── NEW (Bank Policy module) ────────────────────────────────────────────
+    // For each bank the connector pushed this lead to, fetch that bank's
+    // active policy (if one exists for this loan type) and compare it
+    // against the application. This never blocks or fails submission —
+    // if no policy exists yet, that bank's card simply has no result.
+    try {
+      const appObj = application.toObject();
+      let changed = false;
+      for (const ba of application.bankAssignments) {
+        const policy = await BankPolicy.findOne({
+          bankId: ba.bankId,
+          loanType: application.loanType,
+          status: 'active',
+        }).sort({ createdAt: -1 });
+        if (policy) {
+          ba.eligibilityResult = evaluateEligibility(appObj, policy.toObject());
+          changed = true;
+        }
+      }
+      if (changed) await application.save();
+    } catch (eligErr) {
+      console.error('⚠️ Bank Policy eligibility check skipped:', eligErr.message);
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     await Connector.findByIdAndUpdate(connectorDoc._id, { $inc: { totalLeads: 1 } });
 
     const company = await Company.findById(approvedCompany.companyId);
@@ -1392,6 +1420,37 @@ exports.createApplication = async (req, res) => {
       message: err.message,
       stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
+  }
+};
+
+// ─── RECHECK ELIGIBILITY (Bank Policy module) ─────────────────────────────────
+// On-demand re-run of the eligibility comparison for one bank on an existing
+// application — useful if the bank updates its policy after the lead was
+// already submitted. Does not touch any other field on the application.
+exports.checkEligibility = async (req, res) => {
+  try {
+    const application = await LoanApplication.findById(req.params.id);
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    const ba = application.bankAssignments.id(req.params.bankId) ||
+      application.bankAssignments.find(a => a.bankId.toString() === req.params.bankId);
+    if (!ba) return res.status(404).json({ message: 'Bank assignment not found on this application' });
+
+    const policy = await BankPolicy.findOne({
+      bankId: ba.bankId,
+      loanType: application.loanType,
+      status: 'active',
+    }).sort({ createdAt: -1 });
+
+    if (!policy) return res.status(404).json({ message: 'No active Bank Policy found for this bank/loan type' });
+
+    const result = evaluateEligibility(application.toObject(), policy.toObject());
+    ba.eligibilityResult = result;
+    await application.save();
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 

@@ -932,6 +932,11 @@ const bankAssignmentSchema = new Schema(
     statusHistory: [statusHistorySchema],
     queries: [queryItemSchema],
     documentDownloads: [documentDownloadSchema],
+
+    // NEW (Bank Policy module): eligibility result computed against this
+    // bank's active BankPolicy at submission time. Optional/Mixed so it
+    // never breaks existing documents that don't have it.
+    eligibilityResult: { type: Schema.Types.Mixed, default: null },
   },
   { _id: true }
 );

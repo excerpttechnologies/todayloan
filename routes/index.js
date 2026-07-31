@@ -115,6 +115,8 @@ const authCtrl = require('../controllers/authController');
 const adminCtrl = require('../controllers/adminController');
 const appCtrl = require('../controllers/applicationController');
 const mainCtrl = require('../controllers/mainController');
+const bankPolicyCtrl = require('../controllers/bankPolicyController'); // NEW: Bank Policy module
+const excelUpload = require('../middleware/excelUpload'); // NEW: Bank Policy Excel import (separate from KYC upload)
 const { auth, requireRole } = require('../middleware/auth');
 const upload = require('../utils/upload');
 const multer = require('multer');
@@ -153,6 +155,16 @@ router.get('/admin/export/:entity', auth, requireRole('admin'), adminCtrl.export
 router.get('/admin/import-template/:entity', auth, requireRole('admin'), adminCtrl.getImportTemplate);
 router.post('/admin/import/:entity', auth, requireRole('admin'), memUpload.single('file'), adminCtrl.importExcel);
 
+// BANK POLICY (new, separate module — Admin and Bank can manage)
+router.get('/admin/bank-policies', auth, requireRole('admin', 'bank'), bankPolicyCtrl.getPolicies);
+router.get('/admin/bank-policies/template', auth, requireRole('admin', 'bank'), bankPolicyCtrl.downloadTemplate);
+router.post('/admin/bank-policies/import', auth, requireRole('admin', 'bank'), excelUpload.single('file'), bankPolicyCtrl.importFromExcel);
+router.get('/admin/bank-policies/:id', auth, requireRole('admin', 'bank'), bankPolicyCtrl.getPolicyById);
+router.post('/admin/bank-policies', auth, requireRole('admin', 'bank'), bankPolicyCtrl.createPolicy);
+router.put('/admin/bank-policies/:id', auth, requireRole('admin', 'bank'), bankPolicyCtrl.updatePolicy);
+router.put('/admin/bank-policies/:id/toggle-status', auth, requireRole('admin', 'bank'), bankPolicyCtrl.togglePolicyStatus);
+router.get('/bank-policy/my-bank', auth, requireRole('bank'), bankPolicyCtrl.getMyBank);
+
 // LOAN APPLICATIONS
 router.post('/applications', auth, requireRole('connector'), appCtrl.createApplication);
 router.get('/applications', auth, appCtrl.getApplications);
@@ -175,6 +187,9 @@ router.post('/applications/:id/banks/:bankId/select', auth, requireRole('connect
 
 // Banker: update interest status — Interested / Not Interested / Need More Info
 router.post('/applications/:id/banks/:bankId/interest', auth, requireRole('bank', 'sm'), appCtrl.updateInterestStatus);
+
+// Bank Policy module: on-demand eligibility recheck for one bank on an application
+router.get('/applications/:id/banks/:bankId/eligibility', auth, appCtrl.checkEligibility);
 
 // Selected banker only: download docs (auto-emailed to bank's registered email)
 // router.post('/applications/:id/banks/:bankId/download-docs', auth, requireRole('bank', 'sm'), appCtrl.downloadAndEmailDocs);
