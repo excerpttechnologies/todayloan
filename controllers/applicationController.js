@@ -1145,6 +1145,8 @@ const { AuditLog } = require('../models/index');
 // NEW (Bank Policy module): separate collection + pure comparison engine
 const BankPolicy = require('../models/BankPolicy');
 const { evaluateEligibility } = require('../utils/eligibilityEngine');
+// NEW (Company Category module): simple Company Name -> Category lookup per bank
+const { lookupCategory } = require('../controllers/companyCategoryController');
 
 const getMailer = () => nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -1371,6 +1373,7 @@ exports.createApplication = async (req, res) => {
     // if no policy exists yet, that bank's card simply has no result.
     try {
       const appObj = application.toObject();
+      const companyName = application.incomeDetails?.companyName || '';
       let changed = false;
       for (const ba of application.bankAssignments) {
         const policy = await BankPolicy.findOne({
@@ -1382,6 +1385,15 @@ exports.createApplication = async (req, res) => {
           ba.eligibilityResult = evaluateEligibility(appObj, policy.toObject());
           changed = true;
         }
+
+        // NEW (Company Category module): look up this bank's own
+        // Company-Name → Category list (uploaded via Excel) for the
+        // applicant's employer. Purely additive — no match just leaves it null.
+        const catMatch = await lookupCategory(ba.bankId, companyName);
+        ba.companyCategoryResult = catMatch
+          ? { companyName, category: catMatch.category, matched: true }
+          : { companyName, category: null, matched: false };
+        changed = true;
       }
       if (changed) await application.save();
     } catch (eligErr) {

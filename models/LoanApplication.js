@@ -937,6 +937,10 @@ const bankAssignmentSchema = new Schema(
     // bank's active BankPolicy at submission time. Optional/Mixed so it
     // never breaks existing documents that don't have it.
     eligibilityResult: { type: Schema.Types.Mixed, default: null },
+
+    // NEW (Company Category module): looked up from this bank's uploaded
+    // Company->Category Excel sheet, matched on the applicant's company name.
+    companyCategoryResult: { type: Schema.Types.Mixed, default: null },
   },
   { _id: true }
 );

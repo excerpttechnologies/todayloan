@@ -1,31 +1,21 @@
 const XLSX = require('xlsx');
 
+// ─────────────────────────────────────────────────────────────────────────────
+// A single, simple "Field | Value" sheet — no JSON knowledge required by
+// bank staff. Every row below is optional; blank rows are skipped and the
+// BankPolicy schema's own defaults apply.
+// ─────────────────────────────────────────────────────────────────────────────
+
 const YES_WORDS = ['yes', 'y', 'true', '1', 'allowed', 'required'];
 const toBool = (v) => YES_WORDS.includes(String(v ?? '').trim().toLowerCase());
 const toNum = (v) => { const n = Number(v); return isNaN(n) ? 0 : n; };
 const toList = (v) => String(v ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 
-// Excel date cells can arrive as: a JS Date (if cellDates:true), an Excel
-// serial number (if not), or a plain "YYYY-MM-DD" string typed by hand.
-// Normalize all three into an ISO date string so Mongoose's Date cast
-// never chokes on something like "45870".
-const toDateString = (v) => {
-  if (v instanceof Date && !isNaN(v)) return v.toISOString().slice(0, 10);
-  if (typeof v === 'number') {
-    const parsed = XLSX.SSF.parse_date_code(v);
-    if (parsed) {
-      const d = new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d));
-      if (!isNaN(d)) return d.toISOString().slice(0, 10);
-    }
-  }
-  const d = new Date(v);
-  return isNaN(d) ? undefined : d.toISOString().slice(0, 10);
-};
 // normalized label -> [dot-path into policy object, converter]
 const FIELD_MAP = {
   'loantype': ['loanType', String],
   'policyversion': ['policyVersion', String],
- 'effectivedate': ['effectiveDate', toDateString],
+  'effectivedate': ['effectiveDate', String],
   'status': ['status', (v) => (String(v).trim().toLowerCase() === 'inactive' ? 'inactive' : 'active')],
 
   'minimumage': ['eligibility.minAge', toNum],
@@ -87,23 +77,21 @@ const setByPath = (obj, path, value) => {
  * @returns {Object} partial BankPolicy object built from the sheet
  */
 function parsePolicyExcel(buffer) {
-const wb = XLSX.read(buffer, { type: 'buffer', cellDates: true });
+  const wb = XLSX.read(buffer, { type: 'buffer' });
   const sheet = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }); // array of [colA, colB, ...]
 
   const policy = {};
   rows.forEach((row) => {
-  if (!row || row.length < 2) return;
-  const label = normalizeLabel(row[0]);
-  const value = row[1];
-  if (!label || value === undefined || value === '') return;
-  const mapping = FIELD_MAP[label];
-  if (!mapping) return;
-  const [path, convert] = mapping;
-  const converted = convert(value);
-  if (converted === undefined) return; // e.g. unparseable date — skip, keep default
-  setByPath(policy, path, converted);
-});
+    if (!row || row.length < 2) return;
+    const label = normalizeLabel(row[0]);
+    const value = row[1];
+    if (!label || value === undefined || value === '') return;
+    const mapping = FIELD_MAP[label];
+    if (!mapping) return; // unrecognised row — ignore, don't fail the whole import
+    const [path, convert] = mapping;
+    setByPath(policy, path, convert(value));
+  });
 
   return policy;
 }

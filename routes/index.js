@@ -116,6 +116,7 @@ const adminCtrl = require('../controllers/adminController');
 const appCtrl = require('../controllers/applicationController');
 const mainCtrl = require('../controllers/mainController');
 const bankPolicyCtrl = require('../controllers/bankPolicyController'); // NEW: Bank Policy module
+const companyCategoryCtrl = require('../controllers/companyCategoryController'); // NEW: Company Category module (simple)
 const excelUpload = require('../middleware/excelUpload'); // NEW: Bank Policy Excel import (separate from KYC upload)
 const { auth, requireRole } = require('../middleware/auth');
 const upload = require('../utils/upload');
@@ -164,6 +165,12 @@ router.post('/admin/bank-policies', auth, requireRole('admin', 'bank'), bankPoli
 router.put('/admin/bank-policies/:id', auth, requireRole('admin', 'bank'), bankPolicyCtrl.updatePolicy);
 router.put('/admin/bank-policies/:id/toggle-status', auth, requireRole('admin', 'bank'), bankPolicyCtrl.togglePolicyStatus);
 router.get('/bank-policy/my-bank', auth, requireRole('bank'), bankPolicyCtrl.getMyBank);
+
+// COMPANY CATEGORY (new, separate, simple module — Company Name -> Category per bank)
+router.get('/admin/company-category', auth, requireRole('admin', 'bank'), companyCategoryCtrl.getAll);
+router.get('/admin/company-category/template', auth, requireRole('admin', 'bank'), companyCategoryCtrl.downloadTemplate);
+router.post('/admin/company-category/import', auth, requireRole('admin', 'bank'), excelUpload.single('file'), companyCategoryCtrl.importFromExcel);
+router.delete('/admin/company-category/:id', auth, requireRole('admin', 'bank'), companyCategoryCtrl.deleteOne);
 
 // LOAN APPLICATIONS
 router.post('/applications', auth, requireRole('connector'), appCtrl.createApplication);
