@@ -191,12 +191,47 @@ app.use('/api/v1/auth', authLimiter);
 app.use('/api/v1', limiter);
 
 
+// // Static files
+// app.use('/uploads', (req, res, next) => {
+//   res.removeHeader('X-Frame-Options');
+//   next();
+// });
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+//3-8
 // Static files
 app.use('/uploads', (req, res, next) => {
   res.removeHeader('X-Frame-Options');
   next();
 });
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Routes
+app.use('/api/v1', require('./routes/index'));
+
+// Health check
+app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+
+// Serve React build folder
+app.use(express.static(path.join(__dirname, "dist")));
+
+// React Router Support — only for routes that are NOT /uploads or /api
+// (must be LAST, after the routes above)
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "dist", "index.html"));
+// });
+
+
+//3-8
+app.get("*", (req, res) => {
+  const indexPath = path.join(__dirname, "dist", "index.html");
+  if (require('fs').existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ message: 'Not found' });
+  }
+});
+
 
  // this is your existing line 44
 // Routes
