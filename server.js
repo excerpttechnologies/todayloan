@@ -204,7 +204,22 @@ app.use('/uploads', (req, res, next) => {
   res.removeHeader('X-Frame-Options');
   next();
 });
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// // Routes
+// app.use('/api/v1', require('./routes/index'));
+
+
+
+//8-7
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// If a file wasn't found above, it genuinely doesn't exist on disk — say so
+// instead of falling through to the SPA catch-all below.
+app.use('/uploads', (req, res) => {
+  res.status(404).json({ message: 'File not found' });
+});
 
 // Routes
 app.use('/api/v1', require('./routes/index'));
@@ -222,7 +237,41 @@ app.use(express.static(path.join(__dirname, "dist")));
 // });
 
 
-//3-8
+// //3-8
+// app.get("*", (req, res) => {
+//   const indexPath = path.join(__dirname, "dist", "index.html");
+//   if (require('fs').existsSync(indexPath)) {
+//     res.sendFile(indexPath);
+//   } else {
+//     res.status(404).json({ message: 'Not found' });
+//   }
+// });
+
+
+//  // this is your existing line 44
+// // Routes
+// app.use('/api/v1', require('./routes/index'));
+
+// // Health check
+// app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+
+
+
+// // Serve React Dist Folder
+// app.use(express.static(path.join(__dirname, "dist")));
+
+// // React Router Support
+// // app.get("*", (req, res) => {
+// //   res.sendFile(path.join(__dirname, "dist", "index.html"));
+// // });
+
+
+// // ✅ Correct order
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
+
+//8-7
 app.get("*", (req, res) => {
   const indexPath = path.join(__dirname, "dist", "index.html");
   if (require('fs').existsSync(indexPath)) {
@@ -231,28 +280,6 @@ app.get("*", (req, res) => {
     res.status(404).json({ message: 'Not found' });
   }
 });
-
-
- // this is your existing line 44
-// Routes
-app.use('/api/v1', require('./routes/index'));
-
-// Health check
-app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
-
-
-
-// Serve React Dist Folder
-app.use(express.static(path.join(__dirname, "dist")));
-
-// React Router Support
-// app.get("*", (req, res) => {
-//   res.sendFile(path.join(__dirname, "dist", "index.html"));
-// });
-
-
-// ✅ Correct order
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // Socket.io
