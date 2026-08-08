@@ -1914,101 +1914,23 @@ await app.save({ validateModifiedOnly: true });
   }
 };
 
-// ─── SELECTED BANKER: EMAIL DOCUMENTS TO TYPED EMAIL ────────────────────────
-// exports.emailDocumentsToBank = async (req, res) => {
-//   try {
-//     const { bankId } = req.params;
-//     const { email } = req.body;
-
-//     if (!email) return res.status(400).json({ message: 'Email address is required' });
-
-//     const app = await LoanApplication.findById(req.params.id)
-//       .populate('connectorId', 'name email')
-//       .populate('companyId', 'companyName');
-//     if (!app) return res.status(404).json({ message: 'Application not found' });
-
-//     const assignment = app.bankAssignments.find(ba => ba.bankId?.toString() === bankId);
-//     if (!assignment) return res.status(404).json({ message: 'Assignment not found' });
-
-//     if (!assignment.unmaskApproved || app.selectedBankId?.toString() !== bankId) {
-//       return res.status(403).json({
-//         message: 'Documents are only available after the connector selects your bank'
-//       });
-//     }
-
-//     // const docs = app.documents || {};
-//     // const docList = [];
-//     // if (docs.panCard?.url) docList.push({ name: 'PAN Card', url: docs.panCard.url });
-//     // if (docs.aadhaarCard?.url) docList.push({ name: 'Aadhaar Card', url: docs.aadhaarCard.url });
-//     // if (docs.photo?.url) docList.push({ name: 'Photo', url: docs.photo.url });
-//     // if (docs.form16?.url) docList.push({ name: 'Form 16', url: docs.form16.url });
-//     // if (docs.saleDeed?.url) docList.push({ name: 'Sale Deed', url: docs.saleDeed.url });
-//     // (docs.payslips || []).forEach((p, i) => p.url && docList.push({ name: `Payslip ${i + 1}`, url: p.url }));
-//     // (docs.bankStatements || []).forEach((s, i) => s.url && docList.push({ name: `Bank Statement ${i + 1}`, url: s.url }));
-//     // (docs.propertyDocs || []).forEach(d => d.url && docList.push({ name: d.name || 'Property Doc', url: d.url }));
-//     // (docs.others || []).forEach(d => d.url && docList.push({ name: d.name || 'Other', url: d.url }));
-
-//     const docs = app.documents || {};
-//     const docList = buildDocList(docs);
-
-//     if (docList.length === 0) {
-//       return res.status(400).json({ message: 'No documents available to send' });
-//     }
-
-//     const transporter = getMailer();
-//     const linksHtml = docList.map(d => `<li><a href="${d.url}">${d.name}</a></li>`).join('');
-
-//     await transporter.sendMail({
-//       from: process.env.SMTP_USER,
-//       to: email,
-//       subject: `Documents for Application ${app.applicationId}`,
-//       html: `
-//         <p>Hello,</p>
-//         <p>Please find the documents for application <b>${app.applicationId}</b> (${app.loanType}) below:</p>
-//         <ul>${linksHtml}</ul>
-//         <p>Regards,<br/>BANK ZONE</p>
-//       `
-//     });
-
-//     assignment.emailSentAt = new Date();
-//     assignment.documentDownloads.push({
-//       downloadedBy: req.user.name,
-//       downloadedByUserId: req.user._id,
-//       fileName: `Emailed to ${email}`,
-//       downloadedAt: new Date()
-//     });
-//     await app.save();
-
-//     await logAudit(req.user._id, req.user.role, 'document_email', app._id, 'LoanApplication',
-//       `${req.user.name} (${assignment.bankName}) emailed ${docList.length} document(s) for ${app.applicationId} to ${email}`,
-//       { bankId, email, docCount: docList.length });
-
-//     res.json({ message: `Documents emailed to ${email}` });
-//   } catch (err) {
-//     console.error('❌ Error in emailDocumentsToBank:', err);
-//     res.status(500).json({ message: err.message });
-//   }
-// };
-
-
 
 exports.emailDocumentsToBank = async (req, res) => {
   try {
     const { bankId } = req.params;
-    let { email } = req.body; // now optional from frontend
+    let { email } = req.body;
 
     const app = await LoanApplication.findById(req.params.id)
       .populate('connectorId', 'name email')
       .populate('companyId', 'companyName');
     if (!app) return res.status(404).json({ message: 'Application not found' });
 
-    // ✅ Auto-pick applicant's official email if not explicitly passed
+    
+    if (!email) email = req.user.email;
     if (!email) {
-      email = app.applicantDetails?.email;
+      return res.status(400).json({ message: 'No email found for this bank user' });
     }
-    if (!email) {
-      return res.status(400).json({ message: 'Applicant email not found on this application' });
-    }
+    
 
     const assignment = app.bankAssignments.find(ba => ba.bankId?.toString() === bankId);
     if (!assignment) return res.status(404).json({ message: 'Assignment not found' });
@@ -2250,7 +2172,9 @@ exports.replyQuery = async (req, res) => {
 exports.uploadDocument = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+    const path = require('path'); 
     const baseUrl = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const resolvedFolder = req.file.destination.split(path.sep).pop();
     const url = `${baseUrl}/uploads/${req.query.folder || 'others'}/${req.file.filename}`;
     res.json({ url, filename: req.file.filename });
   } catch (err) {
